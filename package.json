@@ -4,8 +4,8 @@
   "description": "zzzin Issue 페이지의 스냅샷(썸네일)을 생성하는 Puppeteer 기반 마이크로서비스.",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "node --watch src/index.js",
+    "start": "node --env-file=.env src/index.js",
+    "dev": "node --env-file=.env --watch src/index.js",
     "test": "vitest run"
   },
   "repository": {
