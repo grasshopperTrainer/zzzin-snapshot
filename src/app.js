@@ -2,9 +2,10 @@
 import { Hono } from "hono";
 
 // createApp: 의존성을 외부에서 주입받아 Hono 앱을 생성하는 팩토리 함수
+// frontendUrl: 캡처할 프론트엔드 주소
 // capturer: (opts) => Promise<Buffer> — 스크린샷 캡처 부품
 // uploader: Uploader 인스턴스 — upload(buffer, issueId) 메서드를 가진 객체
-export function createApp({ capturer, uploader }) {
+export function createApp({ frontendUrl, capturer, uploader }) {
   const app = new Hono();
 
   // GET /heartbeat — 서버가 살아있는지 확인하는 엔드포인트
@@ -25,6 +26,7 @@ export function createApp({ capturer, uploader }) {
     try {
       // 주입된 capturer로 스크린샷 캡처
       const buffer = await capturer({
+        frontendUrl,
         issueId: issue_id,
         pageWidth: page_width,
         pageHeight: page_height,

@@ -7,7 +7,7 @@
     "start": "node --env-file=.env src/index.js",
     "dev": "node --env-file=.env --watch src/index.js",
     "test:unit": "vitest run",
-    "test:integration": "node --env-file=.env node_modules/.bin/vitest run",
+    "test:integration": "node --env-file=.env.test node_modules/.bin/vitest run",
     "test:all": "npm run test:unit && npm run test:integration"
   },
   "repository": {
@@ -29,6 +29,7 @@
     "puppeteer": "^24.40.0"
   },
   "devDependencies": {
+    "sharp": "^0.34.5",
     "vitest": "^4.1.2"
   }
 }

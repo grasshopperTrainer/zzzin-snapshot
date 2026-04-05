@@ -1,4 +1,6 @@
 node_modules/
 .idea/
 .env
+.env.test
 .test-uploads/
+.test-captures/

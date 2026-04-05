@@ -9,6 +9,7 @@ import { S3Uploader } from "./uploader-s3.js";
 
 // 프로덕션용 부품 조립
 const app = createApp({
+  frontendUrl: config.frontendUrl,
   capturer: capture,
   uploader: new S3Uploader(config.s3),
 });

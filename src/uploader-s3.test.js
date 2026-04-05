@@ -34,7 +34,7 @@ describeS3("S3Uploader", () => {
 
   it("이미지를 S3에 업로드하고 URL을 반환해야 한다", async () => {
     const buffer = await readFile(
-      join(import.meta.dirname, "../test/fixtures/sample-1.webp")
+      join(import.meta.dirname, "../test/fixtures/1.webp")
     );
 
     const url = await uploader.upload(buffer, "test-issue-id");
