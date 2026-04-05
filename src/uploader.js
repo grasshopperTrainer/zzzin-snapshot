@@ -15,7 +15,7 @@ const s3 = new S3Client({
 // S3에 스크린샷을 업로드하고 공개 URL을 반환
 // buffer: 이미지 바이너리 데이터
 // issueId: 파일명에 사용할 이슈 ID
-export async function uploadScreenshot(buffer, issueId) {
+export async function upload(buffer, issueId) {
   // S3에 저장될 경로 (예: thumbnails/03167da8.webp)
   const key = `thumbnails/${issueId}.webp`;
 

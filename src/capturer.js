@@ -26,7 +26,7 @@ async function getBrowser() {
 // 스크린샷 캡처 핵심 함수
 // issueId: 캡처할 이슈 ID
 // pageWidth, pageHeight: 뷰포트(화면) 크기
-export async function captureScreenshot({ issueId, pageWidth, pageHeight }) {
+export async function capture({ issueId, pageWidth, pageHeight }) {
   const browser = await getBrowser();
 
   // 새 탭을 열어서 작업 (다른 요청과 독립적으로 동작)
