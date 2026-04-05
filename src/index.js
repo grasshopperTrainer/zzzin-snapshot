@@ -4,8 +4,8 @@ import config from "./config.js";
 import { serve } from "@hono/node-server";
 // 팩토리 함수로 앱 생성 — 부품(capturer, uploader)을 주입
 import { createApp } from "./app.js";
-import { captureScreenshot } from "./screenshot.js";
-import { uploadScreenshot } from "./upload.js";
+import { captureScreenshot } from "./capturer.js";
+import { uploadScreenshot } from "./uploader.js";
 
 const app = createApp({
   capturer: captureScreenshot,
