@@ -5,11 +5,12 @@ import { serve } from "@hono/node-server";
 // 팩토리 함수로 앱 생성 — 부품(capturer, uploader)을 주입
 import { createApp } from "./app.js";
 import { capture } from "./capturer.js";
-import { upload } from "./uploader.js";
+import { S3Uploader } from "./uploader-s3.js";
 
+// 프로덕션용 부품 조립
 const app = createApp({
   capturer: capture,
-  uploader: upload,
+  uploader: new S3Uploader(config.s3),
 });
 
 // 서버 시작 — fetch: app.fetch는 Hono 앱의 요청 처리 함수를 서버에 연결

@@ -3,7 +3,7 @@ import { Hono } from "hono";
 
 // createApp: 의존성을 외부에서 주입받아 Hono 앱을 생성하는 팩토리 함수
 // capturer: (opts) => Promise<Buffer> — 스크린샷 캡처 부품
-// uploader: (buffer, issueId) => Promise<string(url)> — 업로드 부품
+// uploader: Uploader 인스턴스 — upload(buffer, issueId) 메서드를 가진 객체
 export function createApp({ capturer, uploader }) {
   const app = new Hono();
 
@@ -31,7 +31,7 @@ export function createApp({ capturer, uploader }) {
       });
 
       // 주입된 uploader로 업로드
-      const imageUrl = await uploader(buffer, issue_id);
+      const imageUrl = await uploader.upload(buffer, issue_id);
 
       return c.json({ image_url: imageUrl });
     } catch (err) {

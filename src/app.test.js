@@ -1,13 +1,19 @@
 import { describe, it, expect } from "vitest";
 import { createApp } from "./app.js";
+import { Uploader } from "./uploader.js";
 
-// 가짜 부품들 — mock 프레임워크 없이 직접 만든 단순 함수
+// 가짜 업로더 — Uploader를 상속해서 테스트용 구현
+class FakeUploader extends Uploader {
+  async upload(buffer, issueId) {
+    return `https://fake-bucket/thumbnails/${issueId}.webp`;
+  }
+}
+
+// 가짜 capturer — 단순 함수
 const fakeCapturer = async () => Buffer.from("fake-image");
-const fakeUploader = async (buffer, issueId) =>
-  `https://fake-bucket/thumbnails/${issueId}.webp`;
 
-// 테스트용 앱에 가짜 부품 주입 — Puppeteer도 S3도 필요 없음
-const app = createApp({ capturer: fakeCapturer, uploader: fakeUploader });
+// 테스트용 앱에 가짜 부품 주입
+const app = createApp({ capturer: fakeCapturer, uploader: new FakeUploader() });
 
 describe("GET /heartbeat", () => {
   it("200 OK와 status: ok를 반환해야 한다", async () => {
