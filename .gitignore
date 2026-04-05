@@ -3,4 +3,7 @@ node_modules/
 .env
 .env.test
 .test-output/
+.test-captures/
+.test-uploads/
+.test-integration/
 uploads/
