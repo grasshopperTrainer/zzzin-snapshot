@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { createApp } from "./app.js";
 
 const fakeCapturer = async () => Buffer.from("fake-image");
-const outputDir = join(import.meta.dirname, "../.test-uploads");
+const outputDir = join(import.meta.dirname, "../.test-output/app");
 
 const app = createApp({ capturer: fakeCapturer });
 

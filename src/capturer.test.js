@@ -8,7 +8,7 @@ let server;
 const TEST_PORT = 4444;
 const TEST_URL = `http://localhost:${TEST_PORT}`;
 const fixturesDir = join(import.meta.dirname, "../test/fixtures");
-const outputDir = join(import.meta.dirname, "../.test-captures");
+const outputDir = join(import.meta.dirname, "../.test-output/captures");
 
 // 테스트 이미지: 1~6
 const testImages = ["1", "2", "3", "4", "5", "6"];
