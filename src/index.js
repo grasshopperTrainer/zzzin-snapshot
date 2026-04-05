@@ -6,15 +6,22 @@ import { serve } from "@hono/node-server";
 import { createApp } from "./app.js";
 import { capture } from "./capturer.js";
 import { S3Uploader } from "./uploader-s3.js";
+import { LocalUploader } from "./uploader-local.js";
 
-// 프로덕션용 부품 조립
+// UPLOADER 환경변수에 따라 업로더 선택
+const uploader =
+  config.uploader === "s3"
+    ? new S3Uploader(config.s3)
+    : new LocalUploader(config.localDir);
+
 const app = createApp({
   frontendUrl: config.frontendUrl,
   capturer: capture,
-  uploader: new S3Uploader(config.s3),
+  uploader,
 });
 
 // 서버 시작 — fetch: app.fetch는 Hono 앱의 요청 처리 함수를 서버에 연결
 serve({ fetch: app.fetch, port: config.port }, () => {
   console.log(`Server running on http://localhost:${config.port}`);
+  console.log(`Uploader: ${config.uploader}`);
 });
