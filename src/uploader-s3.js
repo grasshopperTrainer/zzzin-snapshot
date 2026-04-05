@@ -5,11 +5,12 @@ import { Uploader } from "./uploader.js";
 // S3Uploader: 프로덕션용 업로더
 // S3 버킷에 webp 이미지를 업로드하고 공개 URL을 반환
 export class S3Uploader extends Uploader {
-  // bucket, region, accessKeyId, secretAccessKey를 받아 S3 클라이언트 초기화
-  constructor({ bucket, region, accessKeyId, secretAccessKey }) {
+  // prefix: S3 내 저장 경로 (프로덕션: "thumbnails", 테스트: "test/thumbnails" 등)
+  constructor({ bucket, region, accessKeyId, secretAccessKey, prefix = "thumbnails" }) {
     super();
     this.bucket = bucket;
     this.region = region;
+    this.prefix = prefix;
     this.s3 = new S3Client({
       region,
       credentials: { accessKeyId, secretAccessKey },
@@ -17,7 +18,7 @@ export class S3Uploader extends Uploader {
   }
 
   async upload(buffer, issueId) {
-    const key = `thumbnails/${issueId}.webp`;
+    const key = `${this.prefix}/${issueId}.webp`;
 
     await this.s3.send(
       new PutObjectCommand({

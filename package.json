@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node --env-file=.env src/index.js",
     "dev": "node --env-file=.env --watch src/index.js",
-    "test": "vitest run"
+    "test:unit": "vitest run",
+    "test:integration": "node --env-file=.env node_modules/.bin/vitest run",
+    "test:all": "npm run test:unit && npm run test:integration"
   },
   "repository": {
     "type": "git",
