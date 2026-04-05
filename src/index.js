@@ -2,8 +2,12 @@
 import config from "./config.js";
 // @hono/node-server: Hono를 Node.js 환경에서 실행하게 해주는 어댑터
 import { serve } from "@hono/node-server";
-// app.js에서 라우트가 정의된 Hono 앱을 가져옴
-import app from "./app.js";
+// 팩토리 함수로 앱 생성
+import { createApp } from "./app.js";
+// 프로덕션에서는 S3 uploader 사용
+import { uploadScreenshot } from "./upload.js";
+
+const app = createApp({ uploader: uploadScreenshot });
 
 // 서버 시작 — fetch: app.fetch는 Hono 앱의 요청 처리 함수를 서버에 연결
 serve({ fetch: app.fetch, port: config.port }, () => {
