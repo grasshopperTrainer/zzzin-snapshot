@@ -1,11 +1,10 @@
 // Hono: 경량 웹 프레임워크 (Python의 FastAPI/Flask 같은 역할)
 import { Hono } from "hono";
-import { captureScreenshot } from "./screenshot.js";
 
 // createApp: 의존성을 외부에서 주입받아 Hono 앱을 생성하는 팩토리 함수
-// uploader를 인자로 받으므로, S3 / 로컬파일 / 메모리 등 자유롭게 교체 가능
-// uploader 시그니처: (buffer, issueId) => Promise<string(url)>
-export function createApp({ uploader }) {
+// capturer: (opts) => Promise<Buffer> — 스크린샷 캡처 부품
+// uploader: (buffer, issueId) => Promise<string(url)> — 업로드 부품
+export function createApp({ capturer, uploader }) {
   const app = new Hono();
 
   // GET /heartbeat — 서버가 살아있는지 확인하는 엔드포인트
@@ -24,14 +23,14 @@ export function createApp({ uploader }) {
     }
 
     try {
-      // Puppeteer로 스크린샷 캡처 — 결과는 webp 이미지 버퍼
-      const buffer = await captureScreenshot({
+      // 주입된 capturer로 스크린샷 캡처
+      const buffer = await capturer({
         issueId: issue_id,
         pageWidth: page_width,
         pageHeight: page_height,
       });
 
-      // 주입된 uploader로 업로드 — S3든 로컬이든 같은 인터페이스
+      // 주입된 uploader로 업로드
       const imageUrl = await uploader(buffer, issue_id);
 
       return c.json({ image_url: imageUrl });

@@ -1,18 +1,13 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { createApp } from "./app.js";
 
-// screenshot.js만 mock — Puppeteer 없이 테스트하기 위함
-vi.mock("./screenshot.js", () => ({
-  captureScreenshot: vi.fn().mockResolvedValue(Buffer.from("fake-image")),
-}));
-
-// 가짜 uploader — mock 없이 직접 만든 테스트용 부품
-// 실제 S3 대신 URL만 반환하는 단순 함수
+// 가짜 부품들 — mock 프레임워크 없이 직접 만든 단순 함수
+const fakeCapturer = async () => Buffer.from("fake-image");
 const fakeUploader = async (buffer, issueId) =>
   `https://fake-bucket/thumbnails/${issueId}.webp`;
 
-// 테스트용 앱에 가짜 uploader 주입
-const app = createApp({ uploader: fakeUploader });
+// 테스트용 앱에 가짜 부품 주입 — Puppeteer도 S3도 필요 없음
+const app = createApp({ capturer: fakeCapturer, uploader: fakeUploader });
 
 describe("GET /heartbeat", () => {
   it("200 OK와 status: ok를 반환해야 한다", async () => {
