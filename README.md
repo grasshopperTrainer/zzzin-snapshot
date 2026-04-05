@@ -25,11 +25,12 @@
 }
 ```
 
-| 파라미터 | 설명 |
-|---|---|
-| `url` | 캡처할 페이지 주소 |
-| `selector` | 캡처할 요소의 CSS 셀렉터 |
-| `upload_url` | presigned URL 또는 로컬 파일 경로 (디버깅용) |
+| 파라미터 | 필수 | 설명 |
+|---|---|---|
+| `url` | ✅ | 캡처할 페이지 주소 |
+| `selector` | ✅ | 캡처할 요소의 CSS 셀렉터 |
+| `upload_url` | ✅ | presigned URL 또는 로컬 파일 경로 (디버깅용) |
+| `timeout` | | 셀렉터 대기 시간 ms (기본 30000) |
 
 **응답:**
 ```json
@@ -95,6 +96,31 @@ curl -X POST http://localhost:6666/screenshot \
 
 # debug.webp 파일이 생성됨
 ```
+
+## CI/CD
+
+```
+push (모든 브랜치) → CI: npm test + Docker build
+GitHub release 생성 → CD: Railway 배포
+```
+
+- **버저닝**: semantic versioning (`v0.1.0`, `v1.0.0`, ...)
+- **배포 트리거**: GitHub에서 release를 publish하면 자동 배포
+- **DEPLOY_VERSION**: release 태그가 Railway 환경변수로 설정됨
+
+### 배포 방법
+
+1. GitHub에서 새 release 생성
+2. 태그: `v0.1.0` 형식
+3. CD 워크플로우가 자동으로 Railway에 배포
+
+### 필요한 GitHub Secrets
+
+| Secret | 설명 |
+|---|---|
+| `RAILWAY_TOKEN` | Railway API 토큰 |
+| `RAILWAY_PROJECT_ID` | Railway 프로젝트 ID |
+| `RAILWAY_SERVICE_ID` | Railway 서비스 ID |
 
 ## 분리 이유
 
