@@ -15,14 +15,14 @@ export function createApp({ capturer }) {
   // selector: 캡처할 요소의 CSS 셀렉터
   // upload_url: presigned URL 또는 로컬 파일 경로 (디버깅용)
   app.post("/screenshot", async (c) => {
-    const { url, selector, upload_url } = await c.req.json();
+    const { url, selector, upload_url, timeout = 30000 } = await c.req.json();
 
     if (!url || !selector || !upload_url) {
       return c.json({ error: "url, selector, upload_url are required" }, 400);
     }
 
     try {
-      const buffer = await capturer({ url, selector });
+      const buffer = await capturer({ url, selector, timeout });
       await upload(buffer, upload_url);
       return c.json({ status: "ok" });
     } catch (err) {

@@ -17,7 +17,7 @@ async function getBrowser() {
 // 스크린샷 캡처
 // url: 캡처할 페이지 주소
 // selector: 캡처할 요소의 CSS 셀렉터
-export async function capture({ url, selector }) {
+export async function capture({ url, selector, timeout = 30000 }) {
   const browser = await getBrowser();
   const page = await browser.newPage();
 
@@ -28,7 +28,7 @@ export async function capture({ url, selector }) {
     await page.goto(url, { waitUntil: "networkidle2" });
 
     // 지정된 셀렉터의 요소가 나타날 때까지 대기
-    const element = await page.waitForSelector(selector, { timeout: 30000 });
+    const element = await page.waitForSelector(selector, { timeout });
 
     // 해당 요소만 캡처
     const buffer = await element.screenshot({ type: "webp", quality: 80 });
