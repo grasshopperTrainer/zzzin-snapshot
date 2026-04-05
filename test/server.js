@@ -2,7 +2,7 @@
 // capturer 테스트를 위해 이미지를 원본 크기 그대로 렌더링
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -34,6 +34,17 @@ app.get("/preview/:imageName", (c) => {
   />
 </body>
 </html>`);
+});
+
+// PUT /upload/:filename — HTTP PUT 업로드 테스트용
+// presigned URL 대신 이 엔드포인트로 PUT하여 업로드 동작을 검증
+app.put("/upload/:filename", async (c) => {
+  const filename = c.req.param("filename");
+  const buffer = Buffer.from(await c.req.arrayBuffer());
+  const filepath = join(fixturesDir, "..", "..", ".test-output", "put", filename);
+  await mkdir(join(filepath, ".."), { recursive: true });
+  await writeFile(filepath, buffer);
+  return c.text("OK", 200);
 });
 
 // 테스트에서 서버를 프로그래밍 방식으로 시작/중지할 수 있도록 export

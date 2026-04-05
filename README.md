@@ -63,6 +63,17 @@
 npm install
 npm test        # 전체 테스트
 npm run dev     # 개발 서버 (파일 변경 시 자동 재시작)
+npm start       # 서버 실행
+```
+
+### 서버 실행
+
+```bash
+# 기본 포트 (6666)
+npm start
+
+# 포트 지정
+PORT=8080 npm start
 ```
 
 ### 디버깅
@@ -70,9 +81,19 @@ npm run dev     # 개발 서버 (파일 변경 시 자동 재시작)
 `upload_url`에 로컬 파일 경로를 넣으면 S3 없이 캡처 결과를 확인할 수 있다.
 
 ```bash
+# 서버 실행
+npm start
+
+# 다른 터미널에서 요청
 curl -X POST http://localhost:6666/screenshot \
   -H "Content-Type: application/json" \
-  -d '{"url":"http://localhost:3000/preview/abc","selector":"[data-snapshot-ready]","upload_url":"./debug.webp"}'
+  -d '{
+    "url": "http://localhost:3000/preview/abc",
+    "selector": "[data-snapshot-ready]",
+    "upload_url": "./debug.webp"
+  }'
+
+# debug.webp 파일이 생성됨
 ```
 
 ## 분리 이유
