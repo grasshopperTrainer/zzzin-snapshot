@@ -28,7 +28,11 @@ export function createApp({ capturer }) {
       console.log(`[screenshot] captured — ${buffer.length} bytes`);
 
       await upload(buffer, upload_url);
-      console.log(`[screenshot] uploaded — ${upload_url.startsWith("http") ? "HTTP PUT" : "local file"}`);
+      // presigned URL은 서명 포함이므로 경로만 로그에 남김
+      const uploadDest = upload_url.startsWith("http")
+        ? new URL(upload_url).pathname
+        : upload_url;
+      console.log(`[screenshot] uploaded — ${uploadDest}`);
 
       return c.json({ status: "ok" });
     } catch (err) {
