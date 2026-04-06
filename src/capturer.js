@@ -14,26 +14,37 @@ async function getBrowser() {
   return browser;
 }
 
-// 스크린샷 캡처
+// 한 페이지에서 여러 스케일로 캡처
 // url: 캡처할 페이지 주소
 // selector: 캡처할 요소의 CSS 셀렉터
-export async function capture({ url, selector, timeout = 30000 }) {
+// scales: [{ deviceScaleFactor }] — 캡처할 배율 목록
+// 반환: [Buffer, ...] — scales 순서대로 캡처 결과
+export async function capture({ url, selector, timeout = 30000, scales = [{ deviceScaleFactor: 1 }] }) {
   const browser = await getBrowser();
   const page = await browser.newPage();
 
   try {
-    // 고정 레이아웃이므로 충분히 큰 뷰포트 설정
-    await page.setViewport({ width: 1920, height: 1080 });
+    await page.goto(url, { waitUntil: "domcontentloaded" });
 
-    await page.goto(url, { waitUntil: "networkidle2" });
-
-    // 지정된 셀렉터의 요소가 나타날 때까지 대기
     const element = await page.waitForSelector(selector, { timeout });
 
-    // 해당 요소만 캡처
-    const buffer = await element.screenshot({ type: "webp", quality: 80 });
+    // 요소의 CSS 크기를 한 번만 읽음
+    const box = await element.boundingBox();
+    const vpWidth = Math.ceil(box.x + box.width);
+    const vpHeight = Math.ceil(box.y + box.height);
 
-    return buffer;
+    const results = [];
+
+    for (const { deviceScaleFactor = 1 } of scales) {
+      await page.setViewport({ width: vpWidth, height: vpHeight, deviceScaleFactor });
+      // 뷰포트 변경 후 레이아웃 재계산 대기
+      await element.evaluate((el) => el.getBoundingClientRect());
+
+      const buffer = await element.screenshot({ type: "webp", quality: 80 });
+      results.push(buffer);
+    }
+
+    return results;
   } finally {
     await page.close();
   }

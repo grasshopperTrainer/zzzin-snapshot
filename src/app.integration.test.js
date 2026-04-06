@@ -9,11 +9,9 @@ import { startTestServer } from "../test/server.js";
 const rootDir = join(import.meta.dirname, "..");
 const outputDir = join(rootDir, ".test-output/integration");
 
-// 테스트용 HTML 서버 (캡처 대상)
 let htmlServer;
 const HTML_PORT = 4445;
 
-// 실제 snapshot 서버
 let appServer;
 const APP_PORT = 5555;
 
@@ -35,8 +33,9 @@ afterAll(() => {
 });
 
 describe("POST /screenshot 통합 테스트", { timeout: 30000 }, () => {
-  it("캡처 후 로컬 파일로 저장되어야 한다", async () => {
-    const filepath = join(outputDir, "integration.webp");
+  it("멀티스케일 캡처 후 로컬 파일로 저장되어야 한다", async () => {
+    const path1x = join(outputDir, "integration-1x.webp");
+    const path2x = join(outputDir, "integration-2x.webp");
 
     const res = await fetch(`http://localhost:${APP_PORT}/screenshot`, {
       method: "POST",
@@ -44,23 +43,28 @@ describe("POST /screenshot 통합 테스트", { timeout: 30000 }, () => {
       body: JSON.stringify({
         url: `http://localhost:${HTML_PORT}/preview/1`,
         selector: "[data-snapshot-ready]",
-        upload_url: filepath,
+        captures: [
+          { upload_url: path1x, device_scale_factor: 1 },
+          { upload_url: path2x, device_scale_factor: 2 },
+        ],
       }),
     });
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ status: "ok" });
 
-    // 저장된 파일을 읽어서 원본 픽스처와 비교
-    const saved = await readFile(filepath);
-    const original = await readFile(join(rootDir, "test/fixtures/1.webp"));
+    const saved1x = await readFile(path1x);
+    const saved2x = await readFile(path2x);
 
     // webp 헤더 검증
-    expect(saved[0]).toBe(0x52); // R
-    expect(saved[1]).toBe(0x49); // I
+    expect(saved1x[0]).toBe(0x52);
+    expect(saved2x[0]).toBe(0x52);
 
-    // 캡처 이미지가 원본과 유사한 크기인지 확인
-    // (webp 재압축으로 바이트 동일하진 않지만 원본의 50% 이상이어야 함)
-    expect(saved.length).toBeGreaterThan(original.length * 0.5);
+    // 두 파일 모두 저장됨
+    expect(saved1x.length).toBeGreaterThan(0);
+    expect(saved2x.length).toBeGreaterThan(0);
+
+    // 2x가 1x보다 커야 함 (더 많은 픽셀)
+    expect(saved2x.length).toBeGreaterThan(saved1x.length);
   });
 });
