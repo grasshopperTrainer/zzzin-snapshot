@@ -25,7 +25,8 @@ export async function capture({ url, selector, timeout = 30000 }) {
     // 고정 레이아웃이므로 충분히 큰 뷰포트 설정
     await page.setViewport({ width: 1920, height: 1080 });
 
-    await page.goto(url, { waitUntil: "networkidle2" });
+    // domcontentloaded로 빠르게 진입, 렌더링 완료는 waitForSelector가 보장
+    await page.goto(url, { waitUntil: "domcontentloaded" });
 
     // 지정된 셀렉터의 요소가 나타날 때까지 대기
     const element = await page.waitForSelector(selector, { timeout });
