@@ -17,7 +17,7 @@ async function getBrowser() {
 // 스크린샷 캡처
 // url: 캡처할 페이지 주소
 // selector: 캡처할 요소의 CSS 셀렉터
-export async function capture({ url, selector, timeout = 30000 }) {
+export async function capture({ url, selector, timeout = 30000, deviceScaleFactor = 1 }) {
   const browser = await getBrowser();
   const page = await browser.newPage();
 
@@ -33,6 +33,7 @@ export async function capture({ url, selector, timeout = 30000 }) {
     await page.setViewport({
       width: Math.ceil(box.x + box.width),
       height: Math.ceil(box.y + box.height),
+      deviceScaleFactor,
     });
 
     // 뷰포트 변경 후 레이아웃이 재계산될 수 있으므로 잠시 대기

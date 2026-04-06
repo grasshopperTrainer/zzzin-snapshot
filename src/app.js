@@ -14,7 +14,7 @@ export function createApp({ capturer }) {
   });
 
   app.post("/screenshot", async (c) => {
-    const { url, selector, upload_url, timeout = 30000 } = await c.req.json();
+    const { url, selector, upload_url, timeout = 30000, device_scale_factor = 1 } = await c.req.json();
 
     if (!url || !selector || !upload_url) {
       console.log(`[screenshot] 400 — missing params`);
@@ -24,7 +24,7 @@ export function createApp({ capturer }) {
     console.log(`[screenshot] start — url=${url} selector=${selector}`);
 
     try {
-      const buffer = await capturer({ url, selector, timeout });
+      const buffer = await capturer({ url, selector, timeout, deviceScaleFactor: device_scale_factor });
       console.log(`[screenshot] captured — ${buffer.length} bytes`);
 
       await upload(buffer, upload_url);

@@ -31,6 +31,7 @@
 | `selector` | ✅ | 캡처할 요소의 CSS 셀렉터 |
 | `upload_url` | ✅ | presigned URL 또는 로컬 파일 경로 (디버깅용) |
 | `timeout` | | 셀렉터 대기 시간 ms (기본 30000) |
+| `device_scale_factor` | | 캡처 해상도 배율 (기본 1, Retina는 2) |
 
 **응답:**
 ```json
