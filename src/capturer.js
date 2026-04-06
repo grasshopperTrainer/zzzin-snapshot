@@ -22,14 +22,21 @@ export async function capture({ url, selector, timeout = 30000 }) {
   const page = await browser.newPage();
 
   try {
-    // 요소가 잘리지 않도록 충분히 큰 뷰포트 설정
-    await page.setViewport({ width: 4096, height: 2160 });
-
     // domcontentloaded로 빠르게 진입, 렌더링 완료는 waitForSelector가 보장
     await page.goto(url, { waitUntil: "domcontentloaded" });
 
-    // 지정된 셀렉터의 요소가 나타날 때까지 대기
+    // 셀렉터 요소가 나타날 때까지 대기
     const element = await page.waitForSelector(selector, { timeout });
+
+    // 요소의 실제 크기를 읽어서 뷰포트를 맞춤
+    const box = await element.boundingBox();
+    await page.setViewport({
+      width: Math.ceil(box.x + box.width),
+      height: Math.ceil(box.y + box.height),
+    });
+
+    // 뷰포트 변경 후 레이아웃이 재계산될 수 있으므로 잠시 대기
+    await element.evaluate((el) => el.getBoundingClientRect());
 
     // 해당 요소만 캡처
     const buffer = await element.screenshot({ type: "webp", quality: 80 });
