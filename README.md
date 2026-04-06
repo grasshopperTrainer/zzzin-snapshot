@@ -21,7 +21,10 @@
 {
   "url": "https://zzzin.net/preview/03167da8",
   "selector": "[data-snapshot-ready]",
-  "upload_url": "https://s3.../thumbnails/03167da8.webp?X-Amz-..."
+  "captures": [
+    { "upload_url": "https://s3.../thumbnails/03167da8.webp?X-Amz-...", "device_scale_factor": 1 },
+    { "upload_url": "https://s3.../thumbnails/03167da8@2x.webp?X-Amz-...", "device_scale_factor": 2 }
+  ]
 }
 ```
 
@@ -29,9 +32,13 @@
 |---|---|---|
 | `url` | ✅ | 캡처할 페이지 주소 |
 | `selector` | ✅ | 캡처할 요소의 CSS 셀렉터 |
-| `upload_url` | ✅ | presigned URL 또는 로컬 파일 경로 (디버깅용) |
+| `captures` | ✅ | 캡처 목록 (최소 1개) |
+| `captures[].upload_url` | ✅ | presigned URL 또는 로컬 파일 경로 (디버깅용) |
+| `captures[].device_scale_factor` | | 해상도 배율 (기본 1, Retina는 2) |
 | `timeout` | | 셀렉터 대기 시간 ms (기본 30000) |
-| `device_scale_factor` | | 캡처 해상도 배율 (기본 1, Retina는 2) |
+
+- 포맷은 항상 webp (quality 80). upload_url 확장자가 `.webp`가 아니면 자동 교체 + warning 로그
+- 한 번의 페이지 로드로 여러 스케일을 캡처 (1x만 필요하면 captures에 1개만)
 
 **응답:**
 ```json
@@ -40,10 +47,11 @@
 
 ### 캡처 흐름
 
-1. `page.goto(url, { waitUntil: 'networkidle2' })`
-2. `page.waitForSelector(selector, { timeout: 30000 })`
-3. `element.screenshot({ type: 'webp', quality: 80 })`
-4. `upload_url`에 PUT (HTTP) 또는 파일 저장 (로컬 경로)
+1. `page.goto(url, { waitUntil: 'domcontentloaded' })`
+2. `page.waitForSelector(selector, { timeout })`
+3. 요소 크기를 읽어 뷰포트를 맞춤
+4. 각 `device_scale_factor`마다 `element.screenshot({ type: 'webp', quality: 80 })`
+5. 각 `upload_url`에 PUT (HTTP) 또는 파일 저장 (로컬 경로)
 
 ## 설계 원칙
 
@@ -86,16 +94,19 @@ PORT=8080 npm start
 # 서버 실행
 npm start
 
-# 다른 터미널에서 요청
+# 다른 터미널에서 요청 (1x + 2x)
 curl -X POST http://localhost:6666/screenshot \
   -H "Content-Type: application/json" \
   -d '{
     "url": "http://localhost:3000/preview/abc",
     "selector": "[data-snapshot-ready]",
-    "upload_url": "./debug.webp"
+    "captures": [
+      { "upload_url": "./debug.webp" },
+      { "upload_url": "./debug@2x.webp", "device_scale_factor": 2 }
+    ]
   }'
 
-# debug.webp 파일이 생성됨
+# debug.webp, debug@2x.webp 파일이 생성됨
 ```
 
 ## CI/CD
