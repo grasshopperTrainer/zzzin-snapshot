@@ -5,20 +5,23 @@ import { writeFile, mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 
 export async function upload(buffer, uploadUrl) {
+  const t = Date.now();
+
   if (uploadUrl.startsWith("http://") || uploadUrl.startsWith("https://")) {
-    // presigned URL에 PUT — S3 자격증명 필요 없음
     const res = await fetch(uploadUrl, {
       method: "PUT",
       body: buffer,
       headers: { "Content-Type": "image/webp" },
     });
 
+    console.log(`[upload] PUT ${res.status} — ${Date.now() - t}ms, ${buffer.length} bytes`);
+
     if (!res.ok) {
       throw new Error(`Upload failed: ${res.status} ${res.statusText}`);
     }
   } else {
-    // 로컬 파일 경로 — 디버깅용
     await mkdir(dirname(uploadUrl), { recursive: true });
     await writeFile(uploadUrl, buffer);
+    console.log(`[upload] file write — ${Date.now() - t}ms, ${buffer.length} bytes`);
   }
 }

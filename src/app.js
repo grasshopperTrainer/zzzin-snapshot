@@ -33,6 +33,7 @@ export function createApp({ capturer }) {
     }
 
     console.log(`[screenshot] start — url=${url} selector=${selector} scales=${captures.length}`);
+    const startTime = Date.now();
 
     try {
       const warnings = [];
@@ -41,7 +42,9 @@ export function createApp({ capturer }) {
       const scales = captures.map((cap) => ({
         deviceScaleFactor: cap.device_scale_factor || 1,
       }));
+      const captureStart = Date.now();
       const buffers = await capturer({ url, selector, timeout, scales });
+      console.log(`[screenshot] capture done — ${Date.now() - captureStart}ms`);
 
       // 각 캡처 결과를 업로드
       for (let i = 0; i < captures.length; i++) {
@@ -61,6 +64,8 @@ export function createApp({ capturer }) {
         await upload(buffer, upload_url);
         console.log(`[screenshot] uploaded — [${isHttp ? "HTTP" : "local"}] ${dest} (${scale}x, ${buffer.length} bytes)`);
       }
+
+      console.log(`[screenshot] done — total ${Date.now() - startTime}ms`);
 
       const response = { status: "ok" };
       if (warnings.length > 0) response.warnings = warnings;

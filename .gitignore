@@ -7,3 +7,4 @@ node_modules/
 .test-uploads/
 .test-integration/
 uploads/
+github-username-request.txt
