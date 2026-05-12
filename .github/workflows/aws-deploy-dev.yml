@@ -1,5 +1,10 @@
-name: AWS Lightsail Push Snapshot Image (dev)
+name: AWS Lightsail Deploy Snapshot (dev)
 
+# Dev branch push 시 자체 Lightsail container service `zzzin-snapshot-dev`
+# 에 snapshot 단독 deployment 발행. zzzin-api 와 분리 — api 는 private
+# domain `zzzin-snapshot-dev.service.local` 로 통신.
+#
+# 첫 실행 시 container service 자동 생성 (idempotent).
 on:
   push:
     branches:
@@ -7,13 +12,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  push-image:
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
     env:
       AWS_REGION: ap-northeast-2
-      LS_SERVICE: zzzin-api-dev
+      LS_SERVICE: zzzin-snapshot-dev
+      LS_POWER: nano
+      LS_SCALE: 1
+      CONTAINER_PORT: 6666
       IMAGE_NAME: zzzin-snapshot-dev:${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
@@ -45,25 +53,80 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Push image to Lightsail registry
+      - name: Bootstrap container service (idempotent)
         run: |
-          aws lightsail push-container-image \
+          EXISTS=$(aws lightsail get-container-services \
+            --service-name "${{ env.LS_SERVICE }}" \
+            --region ${{ env.AWS_REGION }} \
+            --query 'containerServices[0].containerServiceName' \
+            --output text 2>/dev/null || echo "")
+          if [ -z "$EXISTS" ] || [ "$EXISTS" = "None" ]; then
+            echo "Creating Lightsail container service: ${{ env.LS_SERVICE }}"
+            aws lightsail create-container-service \
+              --service-name "${{ env.LS_SERVICE }}" \
+              --power ${{ env.LS_POWER }} \
+              --scale ${{ env.LS_SCALE }} \
+              --region ${{ env.AWS_REGION }}
+            for i in $(seq 1 60); do
+              STATE=$(aws lightsail get-container-services \
+                --service-name "${{ env.LS_SERVICE }}" \
+                --region ${{ env.AWS_REGION }} \
+                --query 'containerServices[0].state' --output text)
+              echo "service state: $STATE"
+              [ "$STATE" = "READY" ] && break
+              sleep 10
+            done
+          else
+            echo "Container service already exists: $EXISTS"
+          fi
+
+      - name: Push image to Lightsail registry
+        id: push
+        run: |
+          OUT=$(aws lightsail push-container-image \
             --region ${{ env.AWS_REGION }} \
             --service-name ${{ env.LS_SERVICE }} \
             --label snapshot \
-            --image ${{ env.IMAGE_NAME }}
+            --image ${{ env.IMAGE_NAME }})
+          echo "$OUT"
+          REF=$(echo "$OUT" | grep -oE ':[^"]+\.snapshot\.[0-9]+' | head -1)
+          echo "image_ref=$REF" >> $GITHUB_OUTPUT
+          echo "pushed: $REF"
 
-      - name: Trigger api repo deployment update
-        env:
-          GH_TOKEN: ${{ secrets.PAT_FOR_API_TRIGGER }}
+      - name: Create container deployment (snapshot only)
         run: |
-          if [ -n "$GH_TOKEN" ]; then
-            curl -s -X POST \
-              -H "Authorization: Bearer $GH_TOKEN" \
-              -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/grasshopperTrainer/zzzin-api/actions/workflows/aws-deploy-dev.yml/dispatches" \
-              -d '{"ref":"dev"}'
-            echo "triggered zzzin-api deploy"
-          else
-            echo "PAT_FOR_API_TRIGGER not set — manually run zzzin-api workflow to update deployment"
-          fi
+          REF="${{ steps.push.outputs.image_ref }}"
+          cat > /tmp/containers.json <<JSON
+          {
+            "snapshot": {
+              "image": "$REF",
+              "command": [],
+              "environment": {
+                "PORT": "${{ env.CONTAINER_PORT }}"
+              },
+              "ports": {
+                "${{ env.CONTAINER_PORT }}": "HTTP"
+              }
+            }
+          }
+          JSON
+          aws lightsail create-container-service-deployment \
+            --service-name ${{ env.LS_SERVICE }} \
+            --region ${{ env.AWS_REGION }} \
+            --containers file:///tmp/containers.json \
+            --public-endpoint '{"containerName":"snapshot","containerPort":${{ env.CONTAINER_PORT }},"healthCheck":{"path":"/heartbeat","successCodes":"200"}}'
+
+      - name: Wait for deployment ACTIVE
+        run: |
+          for i in $(seq 1 60); do
+            STATE=$(aws lightsail get-container-services \
+              --service-name ${{ env.LS_SERVICE }} \
+              --region ${{ env.AWS_REGION }} \
+              --query 'containerServices[0].currentDeployment.state' --output text)
+            echo "deployment state: $STATE"
+            [ "$STATE" = "ACTIVE" ] && exit 0
+            [ "$STATE" = "FAILED" ] && exit 1
+            sleep 10
+          done
+          echo "deployment poll timeout"
+          exit 1
