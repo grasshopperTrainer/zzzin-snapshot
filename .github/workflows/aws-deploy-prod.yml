@@ -1,9 +1,11 @@
-name: AWS Lightsail Push Snapshot Image (dev)
+name: AWS Lightsail Push Snapshot Image (prod)
 
+# release publish 시 prod 의 Lightsail container service registry 로 snapshot
+# 이미지 push. 그 후 zzzin-api repo 의 prod deploy workflow 를 trigger 하여
+# api + snapshot 두 container 가 같이 새 deployment 로 올라감.
 on:
-  push:
-    branches:
-      - dev
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -13,16 +15,16 @@ jobs:
       contents: read
     env:
       AWS_REGION: ap-northeast-2
-      LS_SERVICE: zzzin-api-dev
-      IMAGE_NAME: zzzin-snapshot-dev:${{ github.sha }}
+      LS_SERVICE: zzzin-api-prod
+      IMAGE_NAME: zzzin-snapshot-prod:${{ github.event.release.tag_name || github.sha }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Install Lightsail control plugin
@@ -53,7 +55,7 @@ jobs:
             --label snapshot \
             --image ${{ env.IMAGE_NAME }}
 
-      - name: Trigger api repo deployment update
+      - name: Trigger api repo prod deployment update
         env:
           GH_TOKEN: ${{ secrets.PAT_FOR_API_TRIGGER }}
         run: |
@@ -61,9 +63,9 @@ jobs:
             curl -s -X POST \
               -H "Authorization: Bearer $GH_TOKEN" \
               -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/grasshopperTrainer/zzzin-api/actions/workflows/aws-deploy-dev.yml/dispatches" \
-              -d '{"ref":"dev"}'
-            echo "triggered zzzin-api deploy"
+              "https://api.github.com/repos/grasshopperTrainer/zzzin-api/actions/workflows/aws-deploy-prod.yml/dispatches" \
+              -d '{"ref":"main"}'
+            echo "triggered zzzin-api prod deploy"
           else
-            echo "PAT_FOR_API_TRIGGER not set — manually run zzzin-api workflow to update deployment"
+            echo "PAT_FOR_API_TRIGGER not set — manually run zzzin-api prod workflow to update deployment"
           fi
