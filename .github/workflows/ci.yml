@@ -18,9 +18,10 @@ jobs:
 
       - run: npm ci
 
-      # puppeteer 가 기대하는 Chrome 빌드를 러너 캐시(~/.cache/puppeteer)에 설치.
-      # capturer 테스트가 실제 Chrome 을 띄우는데, 러너에는 미설치 → 명시 설치 필요.
-      - run: npx puppeteer browsers install chrome
+      # capturer 테스트가 실제 Chrome 을 띄움. npm ci postinstall 의 Chrome
+      # 다운로드가 부분 실패로 빈 폴더만 남기면 재설치가 "이미 있음"으로 막히므로,
+      # 캐시를 정리한 뒤 puppeteer 가 기대하는 빌드를 명시 설치한다.
+      - run: rm -rf ~/.cache/puppeteer && npx puppeteer browsers install chrome
 
       - run: npm test
 
