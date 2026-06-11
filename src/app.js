@@ -7,7 +7,8 @@ export function createApp({ capturer }) {
 
   app.use("*", logger());
 
-  app.get("/heartbeat", (c) => {
+  // 헬스체크 — 표준 경로 /health (IETF 헬스체크 컨벤션). 배포 health check 가 사용.
+  app.get("/health", (c) => {
     return c.json({ status: "ok" });
   });
 

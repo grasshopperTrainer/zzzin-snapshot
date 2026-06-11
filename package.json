@@ -1,6 +1,6 @@
 {
   "name": "zzzin-snapshot",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "zzzin Issue 페이지의 스냅샷(썸네일)을 생성하는 Puppeteer 기반 마이크로서비스.",
   "main": "src/index.js",
   "scripts": {
