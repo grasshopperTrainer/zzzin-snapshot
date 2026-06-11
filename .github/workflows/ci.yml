@@ -18,10 +18,10 @@ jobs:
 
       - run: npm ci
 
-      # capturer 테스트가 실제 Chrome 을 띄움. npm ci postinstall 의 Chrome
-      # 다운로드가 부분 실패로 빈 폴더만 남기면 재설치가 "이미 있음"으로 막히므로,
-      # 캐시를 정리한 뒤 puppeteer 가 기대하는 빌드를 명시 설치한다.
-      - run: rm -rf ~/.cache/puppeteer && npx puppeteer browsers install chrome
+      # capturer 테스트가 실제 Chrome 을 띄움. puppeteer 내장 Chrome 다운로드는
+      # 러너 환경에서 불안정하므로, production Dockerfile 과 동일하게 사전 설치된
+      # 시스템 Chrome 을 PUPPETEER_EXECUTABLE_PATH 로 지정한다(ubuntu-latest 기본 제공).
+      - run: echo "PUPPETEER_EXECUTABLE_PATH=$(which google-chrome)" >> "$GITHUB_ENV"
 
       - run: npm test
 
