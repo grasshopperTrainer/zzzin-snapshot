@@ -114,7 +114,7 @@ jobs:
             --service-name ${{ env.LS_SERVICE }} \
             --region ${{ env.AWS_REGION }} \
             --containers file:///tmp/containers.json \
-            --public-endpoint '{"containerName":"snapshot","containerPort":${{ env.CONTAINER_PORT }},"healthCheck":{"path":"/heartbeat","successCodes":"200"}}'
+            --public-endpoint '{"containerName":"snapshot","containerPort":${{ env.CONTAINER_PORT }},"healthCheck":{"path":"/health","successCodes":"200"}}'
 
       - name: Wait for deployment ACTIVE
         run: |

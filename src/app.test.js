@@ -15,9 +15,9 @@ beforeAll(async () => {
   await mkdir(outputDir, { recursive: true });
 });
 
-describe("GET /heartbeat", () => {
+describe("GET /health", () => {
   it("200 OK를 반환해야 한다", async () => {
-    const res = await app.request("/heartbeat");
+    const res = await app.request("/health");
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ status: "ok" });
   });

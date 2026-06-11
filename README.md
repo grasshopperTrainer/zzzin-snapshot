@@ -4,9 +4,9 @@
 
 ## API
 
-### `GET /heartbeat`
+### `GET /health`
 
-서버 상태 확인.
+서버 상태 확인 (헬스체크 표준 경로).
 
 ```json
 { "status": "ok" }
