@@ -10,10 +10,10 @@
 
 ## 운영 환경 (2026-08 인스턴스 전환)
 
-- prod: Lightsail 인스턴스 `zzzin-prod` 의 docker compose 스택 (구성 원본: `zzzin-infra/lightsail/`)
+- prod: Lightsail 인스턴스 `zzzin-prod` / dev: `zzzin-dev` — 각자 docker compose 스택 (구성 원본: `zzzin-infra/lightsail/`)
 - **내부 전용 서비스** — 공개 엔드포인트 없음. api 가 compose 네트워크에서 `http://snapshot:6666` 으로 호출
 - `PORT=6666` (compose 가 주입), `shm_size: 512m` (Chrome /dev/shm 크래시 방지)
-- 클라우드 dev 없음 — 로컬은 `npm start` 또는 zzzin-api 의 `compose.local.yml --profile snapshot`
+- dev 배포 = `dev` 브랜치 push (`deploy-dev.yml`), 로컬은 `npm start` 또는 zzzin-api 의 `compose.local.yml --profile snapshot`
 
 ## GitHub Secrets
 

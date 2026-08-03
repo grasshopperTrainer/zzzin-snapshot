@@ -1,0 +1,50 @@
+# dev CD — Lightsail 인스턴스(zzzin-dev)로 배포. 구조는 deploy-prod.yml 과 동일
+# (docker save | ssh forced-command), 대상 호스트·트리거만 다르다.
+name: deploy-dev
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: development
+    env:
+      VERSION: dev-${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image (linux/amd64)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: zzzin-snapshot:${{ env.VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.ZZZIN_DEV_SSH_KEY }}
+          HOST_KEY: ${{ secrets.ZZZIN_DEV_HOST_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$HOST_KEY" >> ~/.ssh/known_hosts
+
+      - name: Ship image & deploy
+        env:
+          HOST: ${{ secrets.ZZZIN_DEV_HOST }}
+        run: |
+          docker save "zzzin-snapshot:$VERSION" | gzip | \
+            ssh -i ~/.ssh/deploy_key ubuntu@"$HOST" "deploy snapshot $VERSION"
