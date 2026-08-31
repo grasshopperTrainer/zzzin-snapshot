@@ -65,7 +65,7 @@
 - **HTTP**: Hono
 - **브라우저**: Puppeteer (Chrome headless)
 - **컨테이너**: Docker (Chromium 포함)
-- **배포**: Railway
+- **배포**: AWS Lightsail 인스턴스 `zzzin-prod` (docker compose, 내부 전용 서비스)
 
 ## 개발
 
@@ -113,26 +113,25 @@ curl -X POST http://localhost:6666/screenshot \
 
 ```
 push (모든 브랜치) → CI: npm test + Docker build
-GitHub release 생성 → CD: Railway 배포
+GitHub release 생성 → CD: deploy-prod.yml → Lightsail 인스턴스 배포
 ```
 
 - **버저닝**: semantic versioning (`v0.1.0`, `v1.0.0`, ...)
 - **배포 트리거**: GitHub에서 release를 publish하면 자동 배포
-- **DEPLOY_VERSION**: release 태그가 Railway 환경변수로 설정됨
 
 ### 배포 방법
 
 1. GitHub에서 새 release 생성
 2. 태그: `v0.1.0` 형식
-3. CD 워크플로우가 자동으로 Railway에 배포
+3. `deploy-prod.yml` 이 이미지를 빌드해 SSH 로 인스턴스에 배포
 
 ### 필요한 GitHub Secrets
 
 | Secret | 설명 |
 |---|---|
-| `RAILWAY_TOKEN` | Railway API 토큰 |
-| `RAILWAY_PROJECT_ID` | Railway 프로젝트 ID |
-| `RAILWAY_SERVICE_ID` | Railway 서비스 ID |
+| `ZZZIN_PROD_HOST` | 인스턴스 고정 IP |
+| `ZZZIN_PROD_HOST_KEY` | known_hosts 항목 (ssh-keyscan) |
+| `ZZZIN_PROD_SSH_KEY` | 배포용 SSH 개인키 |
 
 ## 분리 이유
 

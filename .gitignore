@@ -8,3 +8,4 @@ node_modules/
 .test-integration/
 uploads/
 github-username-request.txt
+.claude/
