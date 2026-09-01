@@ -6,10 +6,11 @@
 
 ### `GET /health`
 
-서버 상태 확인 (헬스체크 표준 경로).
+서버 상태 확인 (헬스체크 표준 경로). `version` 은 지금 떠 있는 이미지의
+`package.json` 버전 — 배포가 실제로 반영됐는지 밖에서 확인할 수 있게 함께 준다.
 
 ```json
-{ "status": "ok" }
+{ "status": "ok", "version": "1.4.2" }
 ```
 
 ### `POST /screenshot`

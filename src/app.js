@@ -1,6 +1,27 @@
 import { Hono } from "hono";
 import { logger } from "hono/logger";
+import { readFileSync } from "node:fs";
 import { upload } from "./upload.js";
+
+/*
+ * 지금 떠 있는 것이 몇 버전인가 — **밖에서 물어볼 수 있어야 한다.**
+ *
+ * 종전 /health 는 {status:"ok"} 뿐이라, 배포가 실제로 반영됐는지 확인하려면 GitHub
+ * Actions 로그를 뒤져야 했다. 릴리즈가 성공했다는 것과 그 이미지가 돌고 있다는 것은
+ * 다른 사실이다.
+ *
+ * package.json 을 읽는다 — 버전을 두 곳에 적지 않기 위해서다 (Dockerfile 이
+ * package.json 을 이미지에 넣는다). 못 읽어도 헬스체크는 죽지 않아야 하므로 unknown.
+ */
+function readVersion() {
+  try {
+    return JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
+  } catch {
+    return "unknown";
+  }
+}
+
+const VERSION = readVersion();
 
 export function createApp({ capturer }) {
   const app = new Hono();
@@ -8,8 +29,10 @@ export function createApp({ capturer }) {
   app.use("*", logger());
 
   // 헬스체크 — 표준 경로 /health (IETF 헬스체크 컨벤션). 배포 health check 가 사용.
+  // version 은 배포 반영 확인용 (VERSION 주석 참조). status 는 형태를 바꾸지 않는다 —
+  // 배포 health check 가 그대로 쓰고 있다.
   app.get("/health", (c) => {
-    return c.json({ status: "ok" });
+    return c.json({ status: "ok", version: VERSION });
   });
 
   // POST /screenshot
