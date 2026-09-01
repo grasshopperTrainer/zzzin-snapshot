@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { readFile, rm, mkdir } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { createApp } from "./app.js";
 
@@ -19,7 +20,21 @@ describe("GET /health", () => {
   it("200 OK를 반환해야 한다", async () => {
     const res = await app.request("/health");
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ status: "ok" });
+    expect((await res.json()).status).toBe("ok");
+  });
+
+  /*
+   * 배포가 실제로 반영됐는지 밖에서 확인할 수 있어야 한다 — 릴리즈 워크플로우가
+   * 성공했다는 것과 그 이미지가 돌고 있다는 것은 다른 사실이고, 종전에는 Actions
+   * 로그를 뒤져야 알 수 있었다.
+   */
+  it("현재 버전을 함께 알려준다 — package.json 과 일치", async () => {
+    const { version } = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+    );
+    const res = await app.request("/health");
+    expect((await res.json()).version).toBe(version);
+    expect(version).toMatch(/^\d+\.\d+\.\d+$/);
   });
 });
 
